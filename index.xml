@@ -2,19 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Rosona&#39;s Blog</title>
-    <link>http://rosona.io/</link>
+    <link>https://rosona.github.io/</link>
     <description>Recent content on Rosona&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 12 Dec 2015 23:42:53 +0800</lastBuildDate>
-    <atom:link href="http://rosona.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://rosona.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>最牛逼的开源机器学习框架，你知道几个</title>
-      <link>http://rosona.io/post/20151212/</link>
+      <link>https://rosona.github.io/post/20151212/</link>
       <pubDate>Sat, 12 Dec 2015 23:42:53 +0800</pubDate>
       
-      <guid>http://rosona.io/post/20151212/</guid>
+      <guid>https://rosona.github.io/post/20151212/</guid>
       <description>&lt;p&gt;机器学习毫无疑问是当今最热的话题，它已经渗透到生活的方方面面，在移动互联网中混不懂点机器学习都不好意思，说几个能看的到的，经常用邮箱吧，是不是感觉垃圾邮件比N年前变少了，无聊了和siri聊过天不，想坐一下无人驾驶汽车吗，手累了用脸解个锁，智能化产品推荐是不是让你更懒了。看不到的就更多了：信用卡欺诈监测保证你的交易安全，股票交易/量化投资（知道你的高收益理财怎么来的吗？），手势识别（用过海豚浏览器的手势吗），还有医学分析等等，巨头们为了在未来占领先机，前仆后继的开源他们的机器学习框架，加速了人类进入智能时代的步伐（说什么，机器人？）&lt;/p&gt;
 
 &lt;p&gt;Facebook：用于Torch的模块库fbcunn （2015-01-17 开源）
