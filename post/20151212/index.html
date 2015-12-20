@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>最牛逼的开源机器学习框架，你知道几个 &middot; Rosona&#39;s Blog</title>
+    <meta name="author" content="大白鲸">
+    <meta name="description" content="大白鲸团队技术博客">
+    <meta name="generator" content="Hugo 0.15" />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link rel="shortcut icon" href="http://rosona.io/img/favicon.ico">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/2.1.2/normalize.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="http://rosona.io/css/screen.css">
+    <link rel="stylesheet" href="http://rosona.io/css/github.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/default.min.css">
+
+    <!-- Stylesheet for theme color -->
+    <style type="text/css">
+    a, a:visited {color: #33cc99;}
+    .pagination a {color: #33cc99;}
+    .gist .gist-file .gist-meta a:visited {color: #33cc99 !important;}
+    a:focus, a:hover {color: #178b6b;}
+    h1.post-title a:focus, h1.post-title a:hover, h1.blog-title a:focus, h1.blog-title a:hover {color: #178b6b;}
+    .older-posts:hover, .newer-posts:hover {color: #178b6b;}
+</style>
+</head>
+<body class="post-template">
+
+    <header id="site-head">
+	
+	<h1 class="blog-title"><a href="http://rosona.io/">大白鲸团队技术博客</a></h1>
+	
+	
+	<h1 class="blog-subtitle">Deep Thinking</h1>
+	
+</header>
+    
+
+    <main class="content" role="main">
+	    <article class="post">
+	        <header>
+	        <h1 class="post-title">最牛逼的开源机器学习框架，你知道几个</h1>
+	        <div class="post-meta">Peng Rong, <time datetime="12 December 2015">2015-12-12</time></div>
+	        </header>
+
+	        <section class="post-content">
+	            <p>机器学习毫无疑问是当今最热的话题，它已经渗透到生活的方方面面，在移动互联网中混不懂点机器学习都不好意思，说几个能看的到的，经常用邮箱吧，是不是感觉垃圾邮件比N年前变少了，无聊了和siri聊过天不，想坐一下无人驾驶汽车吗，手累了用脸解个锁，智能化产品推荐是不是让你更懒了。看不到的就更多了：信用卡欺诈监测保证你的交易安全，股票交易/量化投资（知道你的高收益理财怎么来的吗？），手势识别（用过海豚浏览器的手势吗），还有医学分析等等，巨头们为了在未来占领先机，前仆后继的开源他们的机器学习框架，加速了人类进入智能时代的步伐（说什么，机器人？）</p>
+
+<p>Facebook：用于Torch的模块库fbcunn （2015-01-17 开源）
+fbcunn可以替代Torch的默认模块，它们构建在Nvidia的cuFFT库（一个基于CUDA的库，用于深度神经网络）之上，可以在更短的时间内训练更大规模的神经网络模型，它对NVIDIA的GPU进行了优化。一部分可以用来训练大型计算机视觉系统。部分模块也可以用来训练处理不同类型数据的模型。既可以进行文本识别、图像识别，也能用于语言模型的训练。部分模块将大型卷积神经网络模型的训练速度提升了23.5倍。
+fbcunn基于Fast Training of Convolutional Networks through FFTs这篇论文中的想法构建了这些模块，FAIR（Facebook人工智能实验室）的主任Yann LeCun是论文的合著者之一。与cuDNN相比，在卷积核较小的情况下（3x3），fbcunn的速度提升可达1.84倍；而在卷积核较大的情况下（5x5），速度提升可达23.5倍。
+Torch和fbcunn的最早的用途之一：图片分类，它分类过ImageNet的120万张图片，可以参考这个地址：<a href="https://github.com/soumith/imagenet-multiGPU.torch">https://github.com/soumith/imagenet-multiGPU.torch</a></p>
+
+<p>参考：
+<a href="http://torch.ch">http://torch.ch</a>
+<a href="https://github.com/torch/">https://github.com/torch/</a>
+<a href="https://github.com/facebook/fbcunn">https://github.com/facebook/fbcunn</a>
+<a href="https://research.facebook.com/blog/879898285375829/fair-open-sources-deep-learning-modules-for-torch/">https://research.facebook.com/blog/879898285375829/fair-open-sources-deep-learning-modules-for-torch/</a></p>
+
+<p>微软：DMTK（2015-11-16 开源）
+DMTK由参数服务器和客户端SDK两部分构成。参数服务器支持存储混合数据结构模型、接受并聚合工作节点服务器的数据模型更新、控制模型同步逻辑；客户端SDK负责维护节点模型缓存（与全局模型服务器同步）、本地训练和模型通讯之间的流水线控制以及片状调度大模型训练。它包含DMTK框架、LightLDA和分布式词向量（Word Embedding）三个组件。
+DMTK采用了传统的客户端/服务器架构，有多个服务器实例运行在多台机器上负责维护全局模型参数，而训练例程（routines）则使用客户端API访问并更新这些参数。为了适应不同的集群环境，DMTK框架支持两种进程间的通信机制：MPI和ZMQ。应用程序端不需要修改任何代码就能够在这两种方式之间切换。DMTK支持Windows和Linux两种操作系统。
+DMTK则是使用C++编写的，提供了一个客户端API和SDK。 DMTK的官网 对DMTK框架、LightLDA、分布式词向量的应用场景、下载、安装、配置、运行以及性能等方面都做了详尽的介绍（见参考部分）。
+DMTK主要用于自然语言处理方面，比如：文本分类与聚类、话题识别以及情感分析等</p>
+
+<p>参考：
+<a href="http://www.dmtk.io">http://www.dmtk.io</a>
+<a href="https://github.com/Microsoft/DMTK">https://github.com/Microsoft/DMTK</a></p>
+
+<p>Google：TensorFlow（2015-11-10 开源）
+TensorFlow 是一个用来编写和执行机器学习算法的工具。计算在数据流图中完成，图中的节点进行数学运算，边界是在各个节点中交换的张量（Tensors&ndash;多维数组）。TensorFlow负责在不同的设备、内核以及线程上异步地执行代码，目前支持CNN、RNN和LSTM等图像、语音和自然语言处理（NLP）领域最流行的深度神经网络模型。
+Google已将TensorFlow用于GMail（SmartReply）、搜索（RankBrain）、图片（生成图像分类模型&ndash;Inception Image Classification Model）、翻译器（字符识别）等产品。
+TensorFlow能够在台式机、服务器或者移动设备的CPU和GPU上运行，也可以使用Docker容器部署到云环境中。在处理图像识别、语音识别和语言翻译等任务时，TensorFlow依赖于配备图像处理单元（GPU）的机器和被用于渲染游戏图像的芯片，它对这些芯片依赖度比想象中的高。当前开源的版本能够运行在单机上，暂不支持集群。操作系统方面，TensorFlow能够运行在Linux和MacOS上。
+TensorFlow的核心是使用C++编写的，有完整的Python API和C++接口，同时还有一个基于C的客户端API。
+参考：</p>
+
+<p><a href="https://www.tensorflow.org">https://www.tensorflow.org</a>
+<a href="https://github.com/tensorflow/tensorflow">https://github.com/tensorflow/tensorflow</a></p>
+
+<p>IBM：SystemML （2015-06 开源）
+SystemML是灵活的，可伸缩机器学习(ML) 语言，使用Java编写。可实现 可定制算法（述性分析、分类、聚类、回归、矩阵分解及生存分析等）， 多个执行模式（单独运行、Hadoop 和 Spark ）， 自动优化。它由 IBM 的 Almaden 实验室花了近 10年开发而成的机器学习技术。
+SystemML语言，声明式机器学习 (DML)。SystemML 包含线性代数原语，统计功能和 ML 指定结构，可以更容易也更原生的表达 ML 算法。算法通过 R 类型或者 Python 类型的语法进行表达。DML 通过提供灵活的定制分析表达和独立于底层输入格式和物理数据表示的数据显著提升数据科学的生产力。
+SystemML 运行环境支持 Windows、Linux 及 MacOS，可支持单机和分布式部署。单机部署显然有利于本地开发的工作，而分布式部署则可以真正发挥机器学习的威力，支持的框架包括 Hadoop 和 Spark
+众所周知的IBM AIWaston融入了不少SystemML技术（不了解的同学可以看下《Jeopardy!》节目，来领教到沃森的威力）
+参考：
+<a href="http://systemml.apache.org">http://systemml.apache.org</a>
+<a href="https://github.com/apache/incubator-systemml">https://github.com/apache/incubator-systemml</a></p>
+
+<p>三星：VELES
+VELES 是分布式深度学习应用系统，号称：用户只需要提供参数，剩下的我来搞，VELES使用 Python 编写，使用OpenCL 或者 CUDA，利用基于Flow 的编程方式。
+参考：
+<a href="https://velesnet.ml">https://velesnet.ml</a>
+<a href="https://github.com/Samsung/veles">https://github.com/Samsung/veles</a></p>
+
+<p>百度：期待ING。。。</p>
+
+<p>巨头之所以开源自己耗时多年打造的机器学习框架，是希望能够加速在人工智能方面的部署，在人工智能日益重要的未来抢占更多的主导权。而对于机器人创业公司来说，当这么多巨头将机器学习平台开源后，还有什么理由做不好机器人。</p>
+
+	        </section>
+
+	        <section class="post-tags" style="padding-bottom:60px;">
+	            <div class="post-meta tags">
+	            <i class="fa fa-fw fa-tag"></i>
+	            
+	            <a href="http://rosona.io/tags/%e6%9c%ba%e5%99%a8%e5%ad%a6%e4%b9%a0">机器学习 </a>
+	            
+	            <a href="http://rosona.io/tags/%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6">开源框架 </a>
+	            
+	            </div>
+	        </section>
+			
+			
+	        	<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rosona';
+    var disqus_identifier = 'http:\/\/rosona.io\/post\/20151212\/';
+    var disqus_title = '最牛逼的开源机器学习框架，你知道几个';
+    var disqus_url = 'http:\/\/rosona.io\/post\/20151212\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+	        
+			
+			
+
+	        <section class="share">
+	            <p class="backtotop"><a data-scroll href="#site-head"><i class="fa fa-lg fa-fw fa-angle-double-up"></i></a><a data-scroll class="backtotoptext" href="#site-head"> Back to top</a></p>
+	            <p class="info prompt">Share</p>
+	            <a href="http://twitter.com/share?text=%e6%9c%80%e7%89%9b%e9%80%bc%e7%9a%84%e5%bc%80%e6%ba%90%e6%9c%ba%e5%99%a8%e5%ad%a6%e4%b9%a0%e6%a1%86%e6%9e%b6%ef%bc%8c%e4%bd%a0%e7%9f%a5%e9%81%93%e5%87%a0%e4%b8%aa&url=http%3a%2f%2frosona.io%2fpost%2f20151212%2f" title="Share on Twitter"
+	                onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+	                <i class="fa fa-2x fa-fw fa-twitter-square"></i> <span class="hidden">Twitter</span>
+	            </a>
+	            <a href="https://www.facebook.com/sharer/sharer.php?u=http%3a%2f%2frosona.io%2fpost%2f20151212%2f" title="Share on Facebook"
+	                onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+	                <i class="fa fa-2x fa-fw fa-facebook-square" style="margin-left: -8px"></i> <span class="hidden">Facebook</span>
+	            </a>
+	            <a href="https://plus.google.com/share?url=http%3a%2f%2frosona.io%2fpost%2f20151212%2f" title="Share on Google+"
+	               onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+	                <i class="fa fa-2x fa-fw fa-google-plus-square" style="margin-left: -8px"></i> <span class="hidden">Google+</span>
+	            </a>
+	        </section>
+
+	        <footer class="post-footer">
+	            <section class="author">
+    <div class="authorimage" style="background: url(http://rosona.io/img/avatar.jpg)"></div>
+    <h4>大白鲸</h4>
+    <p class="bio">为大白鲸团队技术Blog，专注于机器学习，框架分析，性能优化等技术干货的分享</p>
+    <p class="meta">
+      
+    </p>
+</section>
+	        </footer>
+	    </article>
+	</main>
+
+    <footer class="site-footer">
+	<div class="inner">
+		<section class="footer-social">
+			
+		    <a href="//twitter.com/rongpeng@live.com" target="_blank" title="Twitter"><i class="fa fa-2x fa-fw fa-twitter"></i> <span class="hidden">Twitter</span></a>&nbsp;
+		    
+		    
+		    <a href="//github.com/rosona" target="_blank" title="GitHub"><i class="fa fa-2x fa-fw fa-github"></i> <span class="hidden">GitHub</span></a>&nbsp;
+		    
+		    <a href="" target="_blank" title="RSS"><i class="fa fa-2x fa-fw fa-rss"></i> <span class="hidden">RSS</span></a>
+		</section>
+
+		<section class="copyright">&copy; 2015 <a href="http://rosona.io/">大白鲸</a>. rosona All rights reserved.</section>
+	</div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="http://rosona.io/js/index.js"></script>
+<script src="http://rosona.io/js/smooth-scroll.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+
+<script>
+    smoothScroll.init({
+        speed: 800,
+        easing: 'easeInOutCubic',
+        updateURL: false,
+        offset: 125,
+    });
+</script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+</body>
+</html>
