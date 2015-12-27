@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>服务器性能工具箱 （1）－ 网络带宽 &middot; Rosona&#39;s Blog</title>
+    <meta name="author" content="大白鲸">
+    <meta name="description" content="大白鲸团队技术博客">
+    <meta name="generator" content="Hugo 0.15" />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link rel="shortcut icon" href="https://rosona.github.io/img/favicon.ico">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/2.1.2/normalize.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://rosona.github.io/css/screen.css">
+    <link rel="stylesheet" href="https://rosona.github.io/css/github.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/default.min.css">
+
+    <!-- Stylesheet for theme color -->
+    <style type="text/css">
+    a, a:visited {color: #33cc99;}
+    .pagination a {color: #33cc99;}
+    .gist .gist-file .gist-meta a:visited {color: #33cc99 !important;}
+    a:focus, a:hover {color: #178b6b;}
+    h1.post-title a:focus, h1.post-title a:hover, h1.blog-title a:focus, h1.blog-title a:hover {color: #178b6b;}
+    .older-posts:hover, .newer-posts:hover {color: #178b6b;}
+</style>
+</head>
+<body class="post-template">
+
+    <header id="site-head">
+	
+	<h1 class="blog-title"><a href="https://rosona.github.io/">大白鲸团队技术博客</a></h1>
+	
+	
+	<h1 class="blog-subtitle">Deep Thinking</h1>
+	
+</header>
+    
+
+    <main class="content" role="main">
+	    <article class="post">
+	        <header>
+	        <h1 class="post-title">服务器性能工具箱 （1）－ 网络带宽</h1>
+	        <div class="post-meta">Peng Rong, <time datetime="27 December 2015">2015-12-27</time></div>
+	        </header>
+
+	        <section class="post-content">
+	            <p>工欲善其事必先利其器，服务器端性能工具箱从“器”出发，本系列文章介绍我遇到的听到的一些关于性能优化的故事</p>
+
+<p>有时候客户端出现访问慢无法访问偶尔无法打开，有很大的延迟丢包现象，我们查遍了服务器端组件，web service，database，服务器负载，问题仍没有解决，这时候你可能需要考虑一下网络带宽
+​
+怎么查看你的带宽是否有问题，介绍两个网络带宽相关的工具：nload，ethstatus，下面以nload为例，ethstatus安装及使用方式可以自行搜索</p>
+
+<p>在Ubuntu下安装非常简单：sudo apt-get install nload
+安装后使用：nload eth1，eth1为你想检测的网络接口，会出现如下图：</p>
+
+<p><img src="/img/nload_example.jpg" alt="微信公众号" /></p>
+
+<p>上面是所监测接口进入的流量，下面是所监测接口出去的流量，用＃现实的流量图会实时变化，有当前流量，平均流量，最小流量，最大流量，综合流量
+和从服务商协议流量做对比，如果已经达到的最大值，需要关注了</p>
+
+<p>确定是流量问题后，接下来需要看是什么导致流量增加了，有几种情况：
+正常的业务增长，这是好事！
+是否上了耗费流量的业务？服务器上host了image service？有一个推广的视频？如果是，可以考虑CDN等
+静态资源版本使用问题？我们产品最初遇到过每一次版本升级后流量规律性的有一个峰值，由于静态资源（js等）版本未正确使用，每次升级都重新获取所有资源，集中的升级导致流量激增
+DDOS？你摊上事儿了，准备接招吧，留意邮件！（后面我们会有一遍文章单独分析）</p>
+
+<p>如果确定是业务增长所致，那真是快乐的事情，赶紧增加带宽吧，其它情况如果不能尽快解决，建议先增加带宽，保证用户体验，然后尽快真对具体问题做优化处理</p>
+
+<p>当然，现在我们一般都使用云服务，比如aws，aliyun等，云服务会提供非常详细的带宽分析图，比如aws的CloudWatch，可以配合nload使用（并不是每一个dev都有console管理权限）。国内aliyun是预付费，带宽有按需（用多少付多少）也有固定带宽，一般我们都是选择固定带宽，避免高额费用产生（国内的带宽费用非常昂贵），aws的带宽是按需使用</p>
+
+<p>除了云服务商提供的简单的带宽分析之外，我们要想对业务全面了如指掌，需要对服务的VPC做更加详细的监控，了解出入口流量，业务模块间的数据流动很重要，这时候我们可以使用第三方的监控工具协助，比如zabbix，具体怎么使用自行解决，此处不做描述</p>
+
+<p>清楚了VPC内部及外部的流量情况以及支撑的最大值，我们就能针对实际的业务模块做调整及优化</p>
+
+<p>后面我会持续更新性能工具箱，一次专注描述一个点，请保持关注</p>
+
+<p><img src="/img/qrcode_for_beluga.jpg" alt="微信公众号" /></p>
+
+	        </section>
+
+	        <section class="post-tags" style="padding-bottom:60px;">
+	            <div class="post-meta tags">
+	            <i class="fa fa-fw fa-tag"></i>
+	            
+	            </div>
+	        </section>
+			
+			
+	        	<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rosona';
+    var disqus_identifier = 'https:\/\/rosona.github.io\/post\/20151227\/';
+    var disqus_title = '服务器性能工具箱 （1）－ 网络带宽';
+    var disqus_url = 'https:\/\/rosona.github.io\/post\/20151227\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+	        
+			
+			
+
+	        <section class="share">
+	            <p class="backtotop"><a data-scroll href="#site-head"><i class="fa fa-lg fa-fw fa-angle-double-up"></i></a><a data-scroll class="backtotoptext" href="#site-head"> Back to top</a></p>
+	            <p class="info prompt">Share</p>
+	            <a href="http://twitter.com/share?text=%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%80%a7%e8%83%bd%e5%b7%a5%e5%85%b7%e7%ae%b1%20%ef%bc%881%ef%bc%89%ef%bc%8d%20%e7%bd%91%e7%bb%9c%e5%b8%a6%e5%ae%bd&url=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Twitter"
+	                onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+	                <i class="fa fa-2x fa-fw fa-twitter-square"></i> <span class="hidden">Twitter</span>
+	            </a>
+	            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Facebook"
+	                onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+	                <i class="fa fa-2x fa-fw fa-facebook-square" style="margin-left: -8px"></i> <span class="hidden">Facebook</span>
+	            </a>
+	            <a href="https://plus.google.com/share?url=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Google+"
+	               onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+	                <i class="fa fa-2x fa-fw fa-google-plus-square" style="margin-left: -8px"></i> <span class="hidden">Google+</span>
+	            </a>
+	        </section>
+
+	        <footer class="post-footer">
+	            <section class="author">
+    <div class="authorimage" style="background: url(https://rosona.github.io/img/avatar.jpg)"></div>
+    <h4>大白鲸</h4>
+    <p class="bio">为大白鲸团队技术Blog，专注于机器学习，框架分析，性能优化等技术干货的分享</p>
+    <p class="meta">
+      
+    </p>
+</section>
+	        </footer>
+	    </article>
+	</main>
+
+    <footer class="site-footer">
+	<div class="inner">
+		<section class="footer-social">
+			
+		    <a href="//twitter.com/rongpeng@live.com" target="_blank" title="Twitter"><i class="fa fa-2x fa-fw fa-twitter"></i> <span class="hidden">Twitter</span></a>&nbsp;
+		    
+		    
+		    <a href="//github.com/rosona" target="_blank" title="GitHub"><i class="fa fa-2x fa-fw fa-github"></i> <span class="hidden">GitHub</span></a>&nbsp;
+		    
+		    <a href="" target="_blank" title="RSS"><i class="fa fa-2x fa-fw fa-rss"></i> <span class="hidden">RSS</span></a>
+		</section>
+
+		<section class="copyright">&copy; 2015 <a href="https://rosona.github.io/">大白鲸</a>. rosona All rights reserved.</section>
+	</div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://rosona.github.io/js/index.js"></script>
+<script src="https://rosona.github.io/js/smooth-scroll.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+
+<script>
+    smoothScroll.init({
+        speed: 800,
+        easing: 'easeInOutCubic',
+        updateURL: false,
+        offset: 125,
+    });
+</script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+</body>
+</html>

@@ -6,15 +6,55 @@
     <description>Recent content in Posts on Rosona&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 23 Dec 2015 23:50:53 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 27 Dec 2015 13:42:46 +0800</lastBuildDate>
     <atom:link href="https://rosona.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>服务器性能工具箱 （1）－ 网络带宽</title>
+      <link>https://rosona.github.io/post/20151227/</link>
+      <pubDate>Sun, 27 Dec 2015 13:42:46 +0800</pubDate>
+      
+      <guid>https://rosona.github.io/post/20151227/</guid>
+      <description>&lt;p&gt;工欲善其事必先利其器，服务器端性能工具箱从“器”出发，本系列文章介绍我遇到的听到的一些关于性能优化的故事&lt;/p&gt;
+
+&lt;p&gt;有时候客户端出现访问慢无法访问偶尔无法打开，有很大的延迟丢包现象，我们查遍了服务器端组件，web service，database，服务器负载，问题仍没有解决，这时候你可能需要考虑一下网络带宽
+​
+怎么查看你的带宽是否有问题，介绍两个网络带宽相关的工具：nload，ethstatus，下面以nload为例，ethstatus安装及使用方式可以自行搜索&lt;/p&gt;
+
+&lt;p&gt;在Ubuntu下安装非常简单：sudo apt-get install nload
+安装后使用：nload eth1，eth1为你想检测的网络接口，会出现如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://rosona.github.io/img/nload_example.jpg&#34; alt=&#34;微信公众号&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;上面是所监测接口进入的流量，下面是所监测接口出去的流量，用＃现实的流量图会实时变化，有当前流量，平均流量，最小流量，最大流量，综合流量
+和从服务商协议流量做对比，如果已经达到的最大值，需要关注了&lt;/p&gt;
+
+&lt;p&gt;确定是流量问题后，接下来需要看是什么导致流量增加了，有几种情况：
+正常的业务增长，这是好事！
+是否上了耗费流量的业务？服务器上host了image service？有一个推广的视频？如果是，可以考虑CDN等
+静态资源版本使用问题？我们产品最初遇到过每一次版本升级后流量规律性的有一个峰值，由于静态资源（js等）版本未正确使用，每次升级都重新获取所有资源，集中的升级导致流量激增
+DDOS？你摊上事儿了，准备接招吧，留意邮件！（后面我们会有一遍文章单独分析）&lt;/p&gt;
+
+&lt;p&gt;如果确定是业务增长所致，那真是快乐的事情，赶紧增加带宽吧，其它情况如果不能尽快解决，建议先增加带宽，保证用户体验，然后尽快真对具体问题做优化处理&lt;/p&gt;
+
+&lt;p&gt;当然，现在我们一般都使用云服务，比如aws，aliyun等，云服务会提供非常详细的带宽分析图，比如aws的CloudWatch，可以配合nload使用（并不是每一个dev都有console管理权限）。国内aliyun是预付费，带宽有按需（用多少付多少）也有固定带宽，一般我们都是选择固定带宽，避免高额费用产生（国内的带宽费用非常昂贵），aws的带宽是按需使用&lt;/p&gt;
+
+&lt;p&gt;除了云服务商提供的简单的带宽分析之外，我们要想对业务全面了如指掌，需要对服务的VPC做更加详细的监控，了解出入口流量，业务模块间的数据流动很重要，这时候我们可以使用第三方的监控工具协助，比如zabbix，具体怎么使用自行解决，此处不做描述&lt;/p&gt;
+
+&lt;p&gt;清楚了VPC内部及外部的流量情况以及支撑的最大值，我们就能针对实际的业务模块做调整及优化&lt;/p&gt;
+
+&lt;p&gt;后面我会持续更新性能工具箱，一次专注描述一个点，请保持关注&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://rosona.github.io/img/qrcode_for_beluga.jpg&#34; alt=&#34;微信公众号&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>浅谈流处理算法 (1) – 蓄水池采样</title>
-      <link>https://rosona.github.io/post/20151228/</link>
+      <link>https://rosona.github.io/post/20151223/</link>
       <pubDate>Wed, 23 Dec 2015 23:50:53 +0800</pubDate>
       
-      <guid>https://rosona.github.io/post/20151228/</guid>
+      <guid>https://rosona.github.io/post/20151223/</guid>
       <description>
 
 &lt;p&gt;前言
@@ -81,7 +121,7 @@ TalkingData的Bitmap引擎这不又在扣扣索索了嘛&lt;/p&gt;
 
 &lt;p&gt;后续我们计划聊聊蓄水池采样， 存在性查询，基数估计，频率估计，频繁项估计等问题的流处理方法。&lt;/p&gt;
 
-&lt;h2 id=&#34;蓄水池采样:f365e3254338ad78874aeeadd3bdc1fa&#34;&gt;蓄水池采样&lt;/h2&gt;
+&lt;h2 id=&#34;蓄水池采样:5463a92c58271dbff34bfff1d5fdac02&#34;&gt;蓄水池采样&lt;/h2&gt;
 
 &lt;p&gt;蓄水池采样是一类采样算法的总称，广泛使用在从数据流中按一定需求抽样出部分样本的场景中。蓄水池，可以看作小段缓存，协助存储数据流的部分信息。&lt;/p&gt;
 
@@ -236,6 +276,8 @@ VELES 是分布式深度学习应用系统，号称：用户只需要提供参�
 &lt;p&gt;百度：期待ING。。。&lt;/p&gt;
 
 &lt;p&gt;巨头之所以开源自己耗时多年打造的机器学习框架，是希望能够加速在人工智能方面的部署，在人工智能日益重要的未来抢占更多的主导权。而对于机器人创业公司来说，当这么多巨头将机器学习平台开源后，还有什么理由做不好机器人。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://rosona.github.io/img/qrcode_for_beluga.jpg&#34; alt=&#34;微信公众号&#34; /&gt;&lt;/p&gt;
 </description>
     </item>
     

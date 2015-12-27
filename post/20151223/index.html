@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>浅谈流处理算法 (1) – 蓄水池采样 &middot; Rosona&#39;s Blog</title>
+    <meta name="author" content="大白鲸">
+    <meta name="description" content="大白鲸团队技术博客">
+    <meta name="generator" content="Hugo 0.15" />
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link rel="shortcut icon" href="https://rosona.github.io/img/favicon.ico">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/2.1.2/normalize.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://rosona.github.io/css/screen.css">
+    <link rel="stylesheet" href="https://rosona.github.io/css/github.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/default.min.css">
+
+    <!-- Stylesheet for theme color -->
+    <style type="text/css">
+    a, a:visited {color: #33cc99;}
+    .pagination a {color: #33cc99;}
+    .gist .gist-file .gist-meta a:visited {color: #33cc99 !important;}
+    a:focus, a:hover {color: #178b6b;}
+    h1.post-title a:focus, h1.post-title a:hover, h1.blog-title a:focus, h1.blog-title a:hover {color: #178b6b;}
+    .older-posts:hover, .newer-posts:hover {color: #178b6b;}
+</style>
+</head>
+<body class="post-template">
+
+    <header id="site-head">
+	
+	<h1 class="blog-title"><a href="https://rosona.github.io/">大白鲸团队技术博客</a></h1>
+	
+	
+	<h1 class="blog-subtitle">Deep Thinking</h1>
+	
+</header>
+    
+
+    <main class="content" role="main">
+	    <article class="post">
+	        <header>
+	        <h1 class="post-title">浅谈流处理算法 (1) – 蓄水池采样</h1>
+	        <div class="post-meta">inkfish, <time datetime="23 December 2015">2015-12-23</time></div>
+	        </header>
+
+	        <section class="post-content">
+	            
+
+<p>前言
+现如今，“大数据 ”已经不是什么新概念，“一千个人眼中有一千个大数据”。社交网络，智能穿戴设备，智能家居，传感器，机器人等每一个热门的词汇背后都是大量的数据。抛开各种噱头和概念，相信每个人都能看到数据的价值，且能感受到数据规模的爆炸式增长。大规模的数据本身并不产生什么价值，只有通过理解数据，发现知识，避免“Garbage In Garbage Out” 才能发挥数据的价值。</p>
+
+<p>在形式多样的大数据问题中，有一类问题输入以数据流的方式提供。我们需要在有限空间内通过若干遍访问数据流(很多时候可能仅仅允许访问一遍)完成数据处理并提取有价值的信息。我们称处理这类问题的算法为“流处理算法”(Streaming Algorithm)</p>
+
+<p>Wikipedia定义：
+In computer science, streaming algorithms are algorithms for processing data streams in which the input is presented as a sequence of items and can be examined in only a few passes (typically just one). These algorithms have limited memory available to them (much less than the input size) and also limited processing time per item.</p>
+
+<p>一些典型的例子：</p>
+
+<ul>
+<li>根据用户访问日志，统计用户来源分布？</li>
+<li>根据用户访问日志，统计新增用户数目？</li>
+<li>根据用户访问日志，统计Unique User数目？</li>
+<li>根据用户访问日志，统计某个页面访问次数？</li>
+<li>&hellip;&hellip;</li>
+</ul>
+
+<p>这些问题在数据规模并不大且事先确定的情况下，采取直接的统计方案并不难实现。但，在数据流场景下，直接的方案并不能满足实际需求。</p>
+
+<p>数据流问题有以下特点：</p>
+
+<ul>
+<li>数据规模大</li>
+<li>存储空间有限。保存完整的数据集合并不现实。</li>
+<li>分发速度快。如果处理不及时，没有足够资源保存数据。</li>
+<li>允许数据遍历极少次数，一般仅支持遍历一次。</li>
+<li>空间复杂度sub-linear</li>
+<li>时间复杂度linear</li>
+<li>可以接受近似解</li>
+</ul>
+
+<p>曾几何时，拜摩尔定律和硬件技术所赐，软件开发脱离在64k内存中扣扣索索的日子，进入没事开个大数组的印度模式时代(道听途说，如有雷同，概不负责)。软件体量一个比一个吓人。然而，面对上述特点的数据流问题时，我们再一次深刻地体会到日新月异的计算机技术背后总有一个背景音 - “New Wine In Old Bottles”。</p>
+
+<p>数据库大牛Jim Gray多年前就指示我们：Tape is Dead, Disk is Tape, Flash is Disk, RAM locality is King.
+TalkingData的Bitmap引擎这不又在扣扣索索了嘛</p>
+
+<p>这个小系列，就是跟大家一起品尝一下“新酒”， 以酒会友:-)</p>
+
+<p>言归正传，针对上述数据流问题特点，流处理算法的一般模式有：</p>
+
+<ul>
+<li>采样/过滤 – 减少规模
+
+<ul>
+<li>如：蓄水池采样 Reservoir Sampling</li>
+</ul></li>
+<li>随机映射(Random Projection) – 降维
+
+<ul>
+<li>Hash/SimHash</li>
+<li>概要 (Sketch)</li>
+</ul></li>
+<li>统计直方图(Histogram)
+
+<ul>
+<li>滑动窗口</li>
+</ul></li>
+</ul>
+
+<p>这些算法模式都是希望通过样本采样或者特征采样，使用有限数据保持原整体数据的某些特性。</p>
+
+<p>后续我们计划聊聊蓄水池采样， 存在性查询，基数估计，频率估计，频繁项估计等问题的流处理方法。</p>
+
+<h2 id="蓄水池采样:5463a92c58271dbff34bfff1d5fdac02">蓄水池采样</h2>
+
+<p>蓄水池采样是一类采样算法的总称，广泛使用在从数据流中按一定需求抽样出部分样本的场景中。蓄水池，可以看作小段缓存，协助存储数据流的部分信息。</p>
+
+<p>下面我们从三个具体例子看看什么是蓄水池采样。</p>
+
+<p><em>问题1. 年度大奖将从参加年会的同事中随机选择，如何维护一个获奖者名字，不管何时老大宣布获奖者，所有参会者获奖概率一致？</em></p>
+
+<p>假如老大宣布获奖者时，参会同事人数为N，我们需要保证每个参会者获奖概率为1/N。</p>
+
+<p>蓄水池采样算法是这样的：</p>
+
+<ul>
+<li>记录第一个到达的同学到获奖者名单上 (早起的鸟儿有虫吃 :-) )</li>
+<li>当第i位同学到达年会会场的时候(i&gt;1):
+
+<ul>
+<li>以1/i的概率使用第i位同学替换获奖者名单上的同学</li>
+<li>以1-1/i的概率保持获奖者名单不变 (Yeah!守擂成功!)</li>
+</ul></li>
+</ul>
+
+<p>看起来很简单，我们来看看是否能满足问题的需求</p>
+
+<ul>
+<li>第一个同学P_1到达时，获奖者必定是P_1。(获奖概率 <sup>1</sup>&frasl;<sub>1</sub> = 100%，满足)</li>
+<li>第二个同学P_2到达时，1/2概率获奖者替换为P_2, 也1/2概率保持为P_1 (满足)</li>
+<li>当第i位同学到达时，1/i的概率获奖者替换为P_i。而的1-1/i概率保持获奖者不变，也就是P_1, P<em>2, &hellip;, P</em>(i-1)获奖的概率为 1/(i-1) * (1-1/i) = 1/i (满足)</li>
+</ul>
+
+<p>综上所述，根据归纳法，蓄水池采样搞掂了。</p>
+
+<p><em>问题2. 项目进展很好，老大很高兴，决定年度大奖有k名，如何维护一个k个获奖者名单，保证不管何时老大宣布获奖者，所有参会者获奖概率一致？</em></p>
+
+<p>假如老大宣布获奖者时，参会同事人数为N，我们需要保证每个参会者获奖概率为k/N。</p>
+
+<p>蓄水池采样算法是这样的：
+  + 记录前k位到达的同学到获奖者名单上 (早起总没错的)
+  + 当第i位同学到达年会会场的时候(i&gt;k):
+    - 以k/i的概率使用第i位同学替换获奖者名单上的随机一位同学(某位同学杯具了)
+    - 以1-k/i的概率保持获奖者名单不变 (集体守擂成功!)</p>
+
+<p>看起来跟上一个问题差不多，应该是正确的吧</p>
+
+<ul>
+<li>前k位同学到达时，获奖者必定是P_1, P_2, &hellip;, P_k。(获奖概率 k/k = 100%，满足)</li>
+<li>当第i位同学到达时( i &gt; k)
+
+<ul>
+<li>[Condition 1] k/i概率获奖者替换为P_i (满足)</li>
+<li>[Condition 2] 1 - k/i的概率保持获奖者名单不变</li>
+<li>对于P_x (x &lt; i), 在第i位同学尚未到达时获奖概率为k/(i-1)。她能保留在获奖名单中的概率由两部分组成 k/(i-1) * [k/i * (1 - 1/k) + 1 - k/i] = k/i(满足)
+
+<ul>
+<li>[Condition 1]没有被P_i踢掉 k/i * (1 - 1/k)</li>
+<li>[Condition 2]P_i直接出局了1 - k/i</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>综上所述，根据归纳法，蓄水池采样又搞掂了。</p>
+
+<p><em>问题3.为了激励绩效好的同学，每个参会同学都有一个权重，如何维护一个k个获奖者名单，保证不管何时老大宣布获奖者，所有参会者获奖概率与权重成比例？</em></p>
+
+<p>假如老大宣布获奖者时，参会同事人数为N，我们需要保证参会者(P<em>, 绩效权重W</em>)获奖概率为W_i/(W_1 + W_2 + &hellip; + W_N)。</p>
+
+<p>蓄水池采样算法是这样的：</p>
+
+<ul>
+<li>记录前k位到达的同学到获奖者名单上 (嗯，早起永远没错的)
+
+<ul>
+<li>每位同学的分值S_i = random(0, 1) ^ (1/W_i)</li>
+</ul></li>
+<li>当第i位同学到达年会会场的时候(i&gt;k):
+
+<ul>
+<li>计算第位同学的分值 S_i = random(0, 1) ^ (1/W_i)</li>
+<li>如果获奖者名单中分值最小的同学P_x的分值S_x比S_i小，P_x被S_i替换了</li>
+<li>否则，获奖者名单不变 (集体守擂成功!)</li>
+</ul></li>
+</ul>
+
+<p>怎么证明这样可以满足要求呢？额，“这里空白太小，我写不下了” (自己看论文去吧)</p>
+
+<p>年会一年也就一次，很快来了又走了。各种各样的数据流每天都在产生，这些蓄水池采样方法可以帮忙我们获得数据流的一个样本。对于小规模样本可以保持大规模数据信息的场景，蓄水池采样帮忙我们把“大数据”的“大”给去掉了。</p>
+
+<p>参考文献</p>
+
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Streaming_algorithm">https://en.wikipedia.org/wiki/Streaming_algorithm</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Reservoir_sampling">https://en.wikipedia.org/wiki/Reservoir_sampling</a></li>
+<li>Vitter, Jeffrey S. (1 March 1985). &ldquo;Random sampling with a reservoir&rdquo;</li>
+<li>Efraimidis, Pavlos S.; Spirakis, Paul G. (2006-03-16). &ldquo;Weighted random sampling with a reservoir&rdquo;</li>
+</ol>
+
+	        </section>
+
+	        <section class="post-tags" style="padding-bottom:60px;">
+	            <div class="post-meta tags">
+	            <i class="fa fa-fw fa-tag"></i>
+	            
+	            </div>
+	        </section>
+			
+			
+	        	<div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'rosona';
+    var disqus_identifier = 'https:\/\/rosona.github.io\/post\/20151223\/';
+    var disqus_title = '浅谈流处理算法 (1) – 蓄水池采样';
+    var disqus_url = 'https:\/\/rosona.github.io\/post\/20151223\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+	        
+			
+			
+
+	        <section class="share">
+	            <p class="backtotop"><a data-scroll href="#site-head"><i class="fa fa-lg fa-fw fa-angle-double-up"></i></a><a data-scroll class="backtotoptext" href="#site-head"> Back to top</a></p>
+	            <p class="info prompt">Share</p>
+	            <a href="http://twitter.com/share?text=%e6%b5%85%e8%b0%88%e6%b5%81%e5%a4%84%e7%90%86%e7%ae%97%e6%b3%95%20%281%29%20%e2%80%93%20%e8%93%84%e6%b0%b4%e6%b1%a0%e9%87%87%e6%a0%b7&url=https%3a%2f%2frosona.github.io%2fpost%2f20151223%2f" title="Share on Twitter"
+	                onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+	                <i class="fa fa-2x fa-fw fa-twitter-square"></i> <span class="hidden">Twitter</span>
+	            </a>
+	            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2frosona.github.io%2fpost%2f20151223%2f" title="Share on Facebook"
+	                onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+	                <i class="fa fa-2x fa-fw fa-facebook-square" style="margin-left: -8px"></i> <span class="hidden">Facebook</span>
+	            </a>
+	            <a href="https://plus.google.com/share?url=https%3a%2f%2frosona.github.io%2fpost%2f20151223%2f" title="Share on Google+"
+	               onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+	                <i class="fa fa-2x fa-fw fa-google-plus-square" style="margin-left: -8px"></i> <span class="hidden">Google+</span>
+	            </a>
+	        </section>
+
+	        <footer class="post-footer">
+	            <section class="author">
+    <div class="authorimage" style="background: url(https://rosona.github.io/img/avatar.jpg)"></div>
+    <h4>大白鲸</h4>
+    <p class="bio">为大白鲸团队技术Blog，专注于机器学习，框架分析，性能优化等技术干货的分享</p>
+    <p class="meta">
+      
+    </p>
+</section>
+	        </footer>
+	    </article>
+	</main>
+
+    <footer class="site-footer">
+	<div class="inner">
+		<section class="footer-social">
+			
+		    <a href="//twitter.com/rongpeng@live.com" target="_blank" title="Twitter"><i class="fa fa-2x fa-fw fa-twitter"></i> <span class="hidden">Twitter</span></a>&nbsp;
+		    
+		    
+		    <a href="//github.com/rosona" target="_blank" title="GitHub"><i class="fa fa-2x fa-fw fa-github"></i> <span class="hidden">GitHub</span></a>&nbsp;
+		    
+		    <a href="" target="_blank" title="RSS"><i class="fa fa-2x fa-fw fa-rss"></i> <span class="hidden">RSS</span></a>
+		</section>
+
+		<section class="copyright">&copy; 2015 <a href="https://rosona.github.io/">大白鲸</a>. rosona All rights reserved.</section>
+	</div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://rosona.github.io/js/index.js"></script>
+<script src="https://rosona.github.io/js/smooth-scroll.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+
+<script>
+    smoothScroll.init({
+        speed: 800,
+        easing: 'easeInOutCubic',
+        updateURL: false,
+        offset: 125,
+    });
+</script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+</body>
+</html>
