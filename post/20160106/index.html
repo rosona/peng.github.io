@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-    <title>服务器性能工具箱 （1）－ 网络带宽 &middot; Rosona&#39;s Blog</title>
+    <title>服务器性能工具箱 （2）－ DNS &middot; Rosona&#39;s Blog</title>
     <meta name="author" content="大白鲸">
     <meta name="description" content="大白鲸团队技术博客">
     <meta name="generator" content="Hugo 0.15" />
@@ -45,40 +45,61 @@
     <main class="content" role="main">
 	    <article class="post">
 	        <header>
-	        <h1 class="post-title">服务器性能工具箱 （1）－ 网络带宽</h1>
-	        <div class="post-meta">Peng Rong, <time datetime="27 December 2015">2015-12-27</time></div>
+	        <h1 class="post-title">服务器性能工具箱 （2）－ DNS</h1>
+	        <div class="post-meta">Peng Rong, <time datetime="06 January 2016">2016-01-06</time></div>
 	        </header>
 
 	        <section class="post-content">
-	            <p>工欲善其事必先利其器，服务器端性能工具箱从“器”出发，本系列文章介绍我遇到的听到的一些关于性能优化的故事</p>
+	            <p>接着上次的网络带宽继续说，网络带宽问题解决完了，但用户反馈还是很慢，时好时坏，怎么办？</p>
 
-<p>有时候客户端出现访问慢无法访问偶尔无法打开，有很大的延迟丢包现象，我们查遍了服务器端组件，web service，database，服务器负载，问题仍没有解决，这时候你可能需要考虑一下网络带宽
-​
-怎么查看你的带宽是否有问题，介绍两个网络带宽相关的工具：nload，ethstatus，下面以nload为例，ethstatus安装及使用方式可以自行搜索</p>
+<p>做为服务器端开发者，最禁忌类似这样的回答：我这没有问题啊，你看service log，P99都是10ms了，健康的不得了，肯定是客户端的问题，找他们去吧</p>
 
-<p>在Ubuntu下安装非常简单：sudo apt-get install nload
-安装后使用：nload eth1，eth1为你想检测的网络接口，会出现如下图：</p>
+<p>开发者都应该具备Barrels stop here的情怀，是你的问题搞定它，不是你的问题给出你的最佳解决方案</p>
 
-<p><img src="/img/nload_example.jpg" alt="nload example" /></p>
+<p>第一步，去用户那里去复现问题
+用户不会无缘无故的抱怨（除非就想找事），既然他说慢，可能哪里真出了问题。先圈几个怀疑点（怀疑点的圈定，可能需要经验，没有经验可以分析数据），客户端发请求拿数据无非就几个步骤，本地请求准备，建立连接，准备传输，传输，服务器端接收到请求处理请求，返回，呈现，每个环节都做一下耗时分析，看看哪里耗时较多，介绍个工具，curl，ubuntu 下安装方式：sudo apt-get install curl</p>
 
-<p>上面是所监测接口进入的流量，下面是所监测接口出去的流量，用＃现实的流量图会实时变化，有当前流量，平均流量，最小流量，最大流量，综合流量
-和从服务商协议流量做对比，如果已经达到的最大值，需要关注了</p>
+<p>这是个很强大的命令，有很多参数，可以自行学习，只说解决问题要用到的：
+curl -o /dev/null -s -w %{time_connect},%{time_namelookup},%{time_connect},%{time_pretransfer},%{time_starttransfer},%{time_total} <a href="http://yourdomain/api/xxx">http://yourdomain/api/xxx</a></p>
 
-<p>确定是流量问题后，接下来需要看是什么导致流量增加了，有几种情况：
-正常的业务增长，这是好事！
-是否上了耗费流量的业务？服务器上host了image service？有一个推广的视频？如果是，可以考虑CDN等
-静态资源版本使用问题？我们产品最初遇到过每一次版本升级后流量规律性的有一个峰值，由于静态资源（js等）版本未正确使用，每次升级都重新获取所有资源，集中的升级导致流量激增
-DDOS？你摊上事儿了，准备接招吧，留意邮件！（后面我们会有一遍文章单独分析）</p>
+<p>time_connect：建立连接时间</p>
 
-<p>如果确定是业务增长所致，那真是快乐的事情，赶紧增加带宽吧，其它情况如果不能尽快解决，建议先增加带宽，保证用户体验，然后尽快真对具体问题做优化处理</p>
+<p>time_namelookup：DNS解析时间</p>
 
-<p>当然，现在我们一般都使用云服务，比如aws，aliyun等，云服务会提供非常详细的带宽分析图，比如aws的CloudWatch，可以配合nload使用（并不是每一个dev都有console管理权限）。国内aliyun是预付费，带宽有按需（用多少付多少）也有固定带宽，一般我们都是选择固定带宽，避免高额费用产生（国内的带宽费用非常昂贵），aws的带宽是按需使用</p>
+<p>time_pretransfer：从建立连接到开始传输文件的时间</p>
 
-<p>除了云服务商提供的简单的带宽分析之外，我们要想对业务全面了如指掌，需要对服务的VPC做更加详细的监控，了解出入口流量，业务模块间的数据流动很重要，这时候我们可以使用第三方的监控工具协助，比如zabbix，具体怎么使用自行解决，此处不做描述</p>
+<p>time_starttransfer：收到第一个字节的时间</p>
 
-<p>清楚了VPC内部及外部的流量情况以及支撑的最大值，我们就能针对实际的业务模块做调整及优化</p>
+<p>time_total：整个请求时间</p>
 
-<p>后面我会持续更新性能工具箱，一次专注描述一个点，请保持关注</p>
+<p>注意单位是秒</p>
+
+<p>如果连续收集数据，分析可以得出类似下图：</p>
+
+<p>那么问题显而易见了
+注：可能有的同学会问，怎样才能去用户那里复现，提供两个思路，使用代理（命令本身可支持）或客户端上传log</p>
+
+<p>第二步，如何解决
+我们知道使用域名的好处在于可读性与IP地址变更，我新换了一台服务器（比如换机放了，域名对应的IP变下就行）可对客户端透明，但是增加了从域名到IP的解析时间</p>
+
+<ul>
+<li>更改客户端的DNS cache 策略，默认30秒（记忆中好像是）
+
+<ul>
+<li>不足：比如改成30分钟，但如果IP变更，更新起来就有点慢了</li>
+</ul></li>
+<li>自己APP中管理域名－IP变更策略
+
+<ul>
+<li>首次启动更新IP（background），以后用IP访问，后定期background更新</li>
+</ul></li>
+</ul>
+
+<p>本案例的出发点是一个全球化的服务，优化也比这要复杂很多，涉及到多国机房的多种问题，但解决问题的思路大致相同</p>
+
+<p>上面的例子是HTTP，其它协议思路类似</p>
+
+<p>国内的qq，weixin等都使用IP绕开域名。对性能的苛求需要放弃安逸的事物，自己动手，定制化</p>
 
 <p><strong>大白鲸 干货不断 值得关注</strong></p>
 
@@ -99,9 +120,9 @@ DDOS？你摊上事儿了，准备接招吧，留意邮件！（后面我们会�
 	        	<div id="disqus_thread"></div>
 <script type="text/javascript">
     var disqus_shortname = 'rosona';
-    var disqus_identifier = 'https:\/\/rosona.github.io\/post\/20151227\/';
-    var disqus_title = '服务器性能工具箱 （1）－ 网络带宽';
-    var disqus_url = 'https:\/\/rosona.github.io\/post\/20151227\/';
+    var disqus_identifier = 'https:\/\/rosona.github.io\/post\/20160106\/';
+    var disqus_title = '服务器性能工具箱 （2）－ DNS';
+    var disqus_url = 'https:\/\/rosona.github.io\/post\/20160106\/';
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -118,15 +139,15 @@ DDOS？你摊上事儿了，准备接招吧，留意邮件！（后面我们会�
 	        <section class="share">
 	            <p class="backtotop"><a data-scroll href="#site-head"><i class="fa fa-lg fa-fw fa-angle-double-up"></i></a><a data-scroll class="backtotoptext" href="#site-head"> Back to top</a></p>
 	            <p class="info prompt">Share</p>
-	            <a href="http://twitter.com/share?text=%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%80%a7%e8%83%bd%e5%b7%a5%e5%85%b7%e7%ae%b1%20%ef%bc%881%ef%bc%89%ef%bc%8d%20%e7%bd%91%e7%bb%9c%e5%b8%a6%e5%ae%bd&url=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Twitter"
+	            <a href="http://twitter.com/share?text=%e6%9c%8d%e5%8a%a1%e5%99%a8%e6%80%a7%e8%83%bd%e5%b7%a5%e5%85%b7%e7%ae%b1%20%ef%bc%882%ef%bc%89%ef%bc%8d%20DNS&url=https%3a%2f%2frosona.github.io%2fpost%2f20160106%2f" title="Share on Twitter"
 	                onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
 	                <i class="fa fa-2x fa-fw fa-twitter-square"></i> <span class="hidden">Twitter</span>
 	            </a>
-	            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Facebook"
+	            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2frosona.github.io%2fpost%2f20160106%2f" title="Share on Facebook"
 	                onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
 	                <i class="fa fa-2x fa-fw fa-facebook-square" style="margin-left: -8px"></i> <span class="hidden">Facebook</span>
 	            </a>
-	            <a href="https://plus.google.com/share?url=https%3a%2f%2frosona.github.io%2fpost%2f20151227%2f" title="Share on Google+"
+	            <a href="https://plus.google.com/share?url=https%3a%2f%2frosona.github.io%2fpost%2f20160106%2f" title="Share on Google+"
 	               onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
 	                <i class="fa fa-2x fa-fw fa-google-plus-square" style="margin-left: -8px"></i> <span class="hidden">Google+</span>
 	            </a>
